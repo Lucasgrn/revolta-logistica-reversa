@@ -64,6 +64,7 @@ const parametros = z.object({
   custoTransporteKg: z.number().min(0),
   pctRevendaEstoque: z.number().min(0).max(1),
   pctRevendaRecondicionado: z.number().min(0).max(1),
+  pctRevendaSegundaVida: z.number().min(0).max(1),
   pctPecas: z.number().min(0).max(1),
   pctCreditoFornecedor: z.number().min(0).max(1),
 });

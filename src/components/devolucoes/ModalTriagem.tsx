@@ -2,7 +2,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Alert, App, Descriptions, Divider, Form, Input, InputNumber, Modal, Radio, Select, Table, Tag } from "antd";
 import { BulbOutlined } from "@ant-design/icons";
-import type { Condicao, Destinacao } from "@/generated/prisma/enums";
+import type { Canal, Condicao, Destinacao } from "@/generated/prisma/enums";
 import {
   custosAutomaticos, impactoAmbiental, massaTotal, sugerirDestinacao, valorRecuperadoEstimado, type ParametrosDominio,
 } from "@/domain/destinacao";
@@ -14,7 +14,7 @@ import type { DevolucaoCompleta } from "./DetalheDevolucao";
 
 export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
   item: DevolucaoCompleta["itens"][number];
-  devolucao: { id: number; recebidaEm: Date | null; dataEntrega: Date | null };
+  devolucao: { id: number; canal: Canal; recebidaEm: Date | null; dataEntrega: Date | null };
   parametros: ParametrosDominio;
   onFechar: (salvo: boolean) => void;
 }) {
@@ -28,17 +28,17 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
   const agora = useMemo(() => new Date(), []);
   const garantia = dentroDaGarantia(devolucao.dataEntrega, produto.garantiaMeses, agora);
 
-  const sugestao = condicao ? sugerirDestinacao({ condicao, dentroGarantia: garantia, produto }) : null;
+  const sugestao = condicao ? sugerirDestinacao({ canal: devolucao.canal, condicao, dentroGarantia: garantia, produto }) : null;
 
   // Prévia do processamento: mesmas funções de domínio usadas no servidor.
   const previa = useMemo(() => {
     if (!destinacao) return null;
     return {
-      recuperacao: valorRecuperadoEstimado(destinacao, produto, parametros),
+      recuperacao: valorRecuperadoEstimado(destinacao, produto, parametros, devolucao.canal),
       custos: custosAutomaticos({ destinacao, produto, parametros, recebidaEm: devolucao.recebidaEm ?? agora, destinadoEm: agora }),
       impacto: impactoAmbiental(destinacao, produto.composicao),
     };
-  }, [destinacao, produto, parametros, devolucao.recebidaEm, agora]);
+  }, [destinacao, produto, parametros, devolucao.recebidaEm, devolucao.canal, agora]);
   const totalCustos = previa?.custos.reduce((s, c) => s + c.valor, 0) ?? 0;
   const recuperado = valorManual ?? previa?.recuperacao?.valor ?? 0;
 
@@ -52,7 +52,7 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
           onFechar(true);
         } else message.error(r.erro);
       });
-    });
+    }).catch(() => undefined /* erros já exibidos nos campos */);
 
   return (
     <Modal open width={760} title={`Inspeção e destinação — ${produto.nome}`} okText="Confirmar destinação" confirmLoading={pendente} onOk={salvar} onCancel={() => onFechar(false)}>
@@ -70,7 +70,7 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
               const c = e.target.value as Condicao;
               setCondicao(c);
               setValorManual(null);
-              setDestinacao(sugerirDestinacao({ condicao: c, dentroGarantia: garantia, produto }).destinacao);
+              setDestinacao(sugerirDestinacao({ canal: devolucao.canal, condicao: c, dentroGarantia: garantia, produto }).destinacao);
             }}
             className="!grid grid-cols-1 gap-2 sm:grid-cols-2"
           >

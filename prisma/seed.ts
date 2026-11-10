@@ -14,6 +14,7 @@ import {
   abrirDevolucao,
   destinarItem,
   encerrarDevolucao,
+  ErroDominio,
   gerarProtocolo,
   iniciarTriagem,
   recusarDevolucao,
@@ -45,7 +46,9 @@ function ponderado<T>(opcoes: readonly (readonly [T, number])[]): T {
   return opcoes[opcoes.length - 1][0];
 }
 const DIA = 86_400_000;
-const somarDias = (d: Date, dias: number) => new Date(d.getTime() + dias * DIA + inteiro(1, 8) * 3_600_000);
+const AGORA = Date.now();
+// Soma dias e algumas horas aleatórias, sem nunca ultrapassar o momento atual.
+const somarDias = (d: Date, dias: number) => new Date(Math.min(d.getTime() + dias * DIA + inteiro(1, 8) * 3_600_000, AGORA));
 
 // ───────────── Dados mestres ─────────────
 
@@ -263,7 +266,7 @@ async function main() {
   const gestor = USUARIOS[2].nome;
   let criadas = 0;
 
-  for (let i = 0; i < 180; i++) {
+  for (let tentativa = 0; criadas < 180 && tentativa < 400; tentativa++) {
     const canal: Canal = rnd() < 0.62 ? "POS_VENDA" : "POS_CONSUMO";
     let solicitacao: Date;
     let clienteId: number;
@@ -303,6 +306,7 @@ async function main() {
       idade > 7 ? ponderado([["DESTINADA", 25], ["EM_TRIAGEM", 30], ["RECEBIDA", 25], ["EM_TRANSITO", 15], ["RECUSADA", 5]] as const) :
       ponderado([["SOLICITADA", 40], ["EM_TRANSITO", 35], ["RECEBIDA", 25]] as const);
 
+    try {
     await prisma.$transaction(
       async (tx) => {
         const dev = await abrirDevolucao(tx, {
@@ -370,6 +374,7 @@ async function main() {
           const em = tDest > hoje ? hoje : tDest;
           const condicao = ponderado(CONDICOES_POS_VENDA[motivo]);
           const sugestao = sugerirDestinacao({
+            canal,
             condicao,
             dentroGarantia: dentroDaGarantia(venda?.dataEntrega, item.produto.garantiaMeses, em),
             produto: item.produto,
@@ -397,6 +402,11 @@ async function main() {
       },
       { timeout: 30_000 },
     );
+    } catch (e) {
+      // Venda sem unidades disponíveis para devolver (já devolvidas antes): sorteia outra.
+      if (e instanceof ErroDominio) continue;
+      throw e;
+    }
   }
 
   console.log(`Seed concluído: ${produtos.length} produtos, ${clientes.length} clientes, ${vendas.length} vendas, ${criadas} devoluções.`);

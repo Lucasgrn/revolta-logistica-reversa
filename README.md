@@ -97,7 +97,7 @@ A distinção visual entre os canais é a mesma em todo o sistema: **azul com í
 | **Produto** | SKU, nome, categoria, preço de venda, custo de aquisição, garantia (meses) | Valor de revenda, crédito do fornecedor, validação de garantia |
 | **Composição** | kg de cada material por unidade | Massa, sucata, CO₂e e resíduos perigosos |
 | **Material** | fator de CO₂e evitado (kgCO₂e/kg), preço de sucata (R$/kg), reciclável?, perigoso? | Indicadores ambientais e valor de reciclagem |
-| **Parâmetros** | prazo de arrependimento; custos de triagem, armazenagem, embalagem, reparo, transporte e descarte; percentuais de recuperação | Cálculos automáticos |
+| **Parâmetros** | prazo de arrependimento; custos de triagem, armazenagem, embalagem, reparo, transporte e descarte; percentuais de recuperação (incluindo a segunda vida do pós-consumo) | Cálculos automáticos |
 | **Venda** (referência, importada do e-commerce) | número, cliente, data de entrega, itens | Prazos, garantia e taxa de devolução |
 
 **Dados operacionais** (registrados durante o fluxo):
@@ -124,6 +124,8 @@ Valem só para o pós-venda e são comparados com a data de entrega da venda:
 
 Os alertas **não bloqueiam** a abertura. Eles aparecem para o Analista, que decide se recusa a devolução.
 
+Já a **quantidade** é uma regra rígida: a soma devolvida de um produto, contando as solicitações anteriores da mesma venda (exceto as recusadas), não pode passar do que foi vendido.
+
 #### b) Ciclo de vida e permissões (`fluxo.ts`)
 
 Uma máquina de estados aceita apenas transições válidas (por exemplo, não é possível destinar antes da triagem). Cada transição grava um registro no histórico. As ações são autorizadas no servidor por papel (veja a [seção 5](#5-perfis-de-acesso-e-credenciais)). Quando **todos os itens** de uma devolução estão destinados, ela passa automaticamente a **Destinada**.
@@ -140,6 +142,14 @@ Uma máquina de estados aceita apenas transições válidas (por exemplo, não �
 | **D**: irrecuperável | massa reciclável ≥ 50% | Reciclagem |
 | | massa reciclável < 50% | Descarte adequado |
 
+No **pós-consumo** a regra muda, porque o produto já cumpriu sua vida útil com o cliente:
+
+| Condição (pós-consumo) | Destinação sugerida | Racional |
+|---|---|---|
+| **A** ou **B**: funcional | Recondicionamento para **segunda vida** | Nunca volta ao estoque como produto novo; é revendido como usado |
+| **C**: defeituoso | Desmontagem para peças | Em fim de vida, o reparo não se justifica; aproveitam-se os componentes |
+| **D**: irrecuperável | Reciclagem ou descarte | Mesma regra da massa reciclável usada no pós-venda |
+
 O Analista pode divergir da sugestão. A divergência fica registrada, porque o sistema guarda a destinação sugerida junto da escolhida.
 
 #### d) Valor recuperado estimado (`valorRecuperadoEstimado`)
@@ -147,7 +157,8 @@ O Analista pode divergir da sugestão. A divergência fica registrada, porque o 
 | Destinação | Tipo | Fórmula (parâmetros padrão) |
 |---|---|---|
 | Retorno ao estoque | Revenda | preço × 100% |
-| Recondicionamento | Revenda | preço × 60% |
+| Recondicionamento (pós-venda) | Revenda | preço × 60% |
+| Recondicionamento (pós-consumo, segunda vida) | Revenda | preço de novo × 25% |
 | Devolução ao fornecedor | Crédito do fornecedor | custo de aquisição × 100% |
 | Desmontagem para peças | Revenda | preço × 15% |
 | Reciclagem | Sucata | Σ (massa de cada material **reciclável** × preço de sucata) |
@@ -191,7 +202,7 @@ As devoluções do período (pela **data de solicitação**) são agregadas conf
 |---|---|
 | Taxa de reaproveitamento | massa desviada ÷ massa destinada |
 | Resultado líquido | valor recuperado − custos reversos |
-| Taxa de recuperação de valor | valor recuperado ÷ valor de venda dos itens devolvidos |
+| Taxa de recuperação de valor | valor recuperado **no pós-venda** ÷ valor de venda dos itens devolvidos no pós-venda (no pós-consumo não houve venda de referência) |
 | Custo médio por item | custo reverso total ÷ itens devolvidos |
 | Tempo médio de ciclo | média (encerramento − solicitação), em dias, das encerradas |
 | Taxa de recusa | recusadas ÷ devoluções |

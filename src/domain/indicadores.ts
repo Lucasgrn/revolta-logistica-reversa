@@ -130,6 +130,7 @@ export function calcularIndicadores(
     custoTotal: 0,
     valorRecuperado: 0,
     valorReferencia: 0,
+    recuperadoPosVenda: 0,
     somaCiclo: 0,
     encerradas: 0,
     recusadas: 0,
@@ -178,13 +179,14 @@ export function calcularIndicadores(
     }
     for (const r of d.recuperacoes) {
       k.valorRecuperado += r.valor;
+      if (d.canal === "POS_VENDA") k.recuperadoPosVenda += r.valor;
       m.recuperado += r.valor;
       recTipo.set(r.tipo, (recTipo.get(r.tipo) ?? 0) + r.valor);
     }
 
     for (const item of d.itens) {
       k.itens++;
-      k.valorReferencia += item.produto.preco;
+      if (d.canal === "POS_VENDA") k.valorReferencia += item.produto.preco;
       // Taxa de devolução só considera o pós-venda: no pós-consumo o produto pode ter sido comprado em outro lugar.
       if (d.canal === "POS_VENDA") registrarDevolvido(item.produto);
 
@@ -228,7 +230,7 @@ export function calcularIndicadores(
       custoMedioItem: razao(k.custoTotal, k.itens),
       valorRecuperado: k.valorRecuperado,
       resultadoLiquido: k.valorRecuperado - k.custoTotal,
-      taxaRecuperacaoValor: razao(k.valorRecuperado, k.valorReferencia),
+      taxaRecuperacaoValor: razao(k.recuperadoPosVenda, k.valorReferencia),
       tempoMedioCicloDias: razao(k.somaCiclo, k.encerradas),
       taxaRecusa: razao(k.recusadas, k.devolucoes),
     },

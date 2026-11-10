@@ -38,29 +38,44 @@ const params: ParametrosDominio = {
   custoTransporteKg: 0.45,
   pctRevendaEstoque: 1,
   pctRevendaRecondicionado: 0.6,
+  pctRevendaSegundaVida: 0.25,
   pctPecas: 0.15,
   pctCreditoFornecedor: 1,
 };
 
 describe("sugestão de destinação", () => {
   it("segue a condição do item", () => {
-    expect(sugerirDestinacao({ condicao: "A", dentroGarantia: false, produto: painel }).destinacao).toBe("RETORNO_ESTOQUE");
-    expect(sugerirDestinacao({ condicao: "B", dentroGarantia: false, produto: painel }).destinacao).toBe("RECONDICIONAMENTO");
-    expect(sugerirDestinacao({ condicao: "C", dentroGarantia: true, produto: painel }).destinacao).toBe("DEVOLUCAO_FORNECEDOR");
-    expect(sugerirDestinacao({ condicao: "C", dentroGarantia: false, produto: painel }).destinacao).toBe("RECONDICIONAMENTO");
-    expect(sugerirDestinacao({ condicao: "C", dentroGarantia: false, produto: { ...painel, preco: 30 } }).destinacao).toBe("DESMONTAGEM_PECAS");
-    expect(sugerirDestinacao({ condicao: "D", dentroGarantia: false, produto: painel }).destinacao).toBe("RECICLAGEM");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "A", dentroGarantia: false, produto: painel }).destinacao).toBe("RETORNO_ESTOQUE");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "B", dentroGarantia: false, produto: painel }).destinacao).toBe("RECONDICIONAMENTO");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "C", dentroGarantia: true, produto: painel }).destinacao).toBe("DEVOLUCAO_FORNECEDOR");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "C", dentroGarantia: false, produto: painel }).destinacao).toBe("RECONDICIONAMENTO");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "C", dentroGarantia: false, produto: { ...painel, preco: 30 } }).destinacao).toBe("DESMONTAGEM_PECAS");
+    expect(sugerirDestinacao({ canal: "POS_VENDA", condicao: "D", dentroGarantia: false, produto: painel }).destinacao).toBe("RECICLAGEM");
     expect(
-      sugerirDestinacao({ condicao: "D", dentroGarantia: false, produto: { ...painel, composicao: [{ massaKg: 5, material: eva }] } }).destinacao,
+      sugerirDestinacao({ canal: "POS_VENDA", condicao: "D", dentroGarantia: false, produto: { ...painel, composicao: [{ massaKg: 5, material: eva }] } }).destinacao,
     ).toBe("DESCARTE");
+  });
+});
+
+describe("pós-consumo", () => {
+  it("nunca volta ao estoque como novo e não repara item em fim de vida", () => {
+    const s = (condicao: "A" | "B" | "C" | "D") => sugerirDestinacao({ canal: "POS_CONSUMO", condicao, dentroGarantia: false, produto: painel }).destinacao;
+    expect(s("A")).toBe("RECONDICIONAMENTO");
+    expect(s("B")).toBe("RECONDICIONAMENTO");
+    expect(s("C")).toBe("DESMONTAGEM_PECAS");
+    expect(s("D")).toBe("RECICLAGEM");
+  });
+  it("valoriza a segunda vida abaixo do recondicionado de pós-venda", () => {
+    expect(valorRecuperadoEstimado("RECONDICIONAMENTO", painel, params, "POS_CONSUMO")?.valor).toBe(225);
+    expect(valorRecuperadoEstimado("RECONDICIONAMENTO", painel, params, "POS_VENDA")?.valor).toBe(540);
   });
 });
 
 describe("valor recuperado e custos", () => {
   it("estima a sucata só dos materiais recicláveis", () => {
-    expect(valorRecuperadoEstimado("RECICLAGEM", painel, params)).toEqual({ tipo: "SUCATA", valor: 22.5 });
-    expect(valorRecuperadoEstimado("DEVOLUCAO_FORNECEDOR", painel, params)).toEqual({ tipo: "CREDITO_FORNECEDOR", valor: 600 });
-    expect(valorRecuperadoEstimado("DESCARTE", painel, params)).toBeNull();
+    expect(valorRecuperadoEstimado("RECICLAGEM", painel, params, "POS_VENDA")).toEqual({ tipo: "SUCATA", valor: 22.5 });
+    expect(valorRecuperadoEstimado("DEVOLUCAO_FORNECEDOR", painel, params, "POS_VENDA")).toEqual({ tipo: "CREDITO_FORNECEDOR", valor: 600 });
+    expect(valorRecuperadoEstimado("DESCARTE", painel, params, "POS_VENDA")).toBeNull();
   });
 
   it("calcula armazenagem pelos dias e descarte pelo rejeito", () => {
@@ -148,6 +163,7 @@ describe("indicadores", () => {
       new Map([[1, 10]]),
     );
     expect(ind.porProduto).toHaveLength(0);
+    expect(ind.kpis.taxaRecuperacaoValor).toBeNull();
     expect(ind.kpis.itens).toBe(1);
   });
 });

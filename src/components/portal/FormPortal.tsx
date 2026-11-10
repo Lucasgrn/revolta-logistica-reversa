@@ -56,7 +56,7 @@ export function FormPortal({ produtos }: { produtos: { id: number; nome: string;
         const r = await buscarVenda(v.numero, v.email);
         if (r.ok) { setVenda(r.dados!); setSelecionados({}); } else message.error(r.erro);
       }),
-    );
+    ).catch(() => undefined /* erros já exibidos nos campos */);
 
   const enviar = () =>
     form.validateFields().then((v) =>
@@ -67,7 +67,7 @@ export function FormPortal({ produtos }: { produtos: { id: number; nome: string;
             : await abrirPosConsumo({ ...v, itens: v.itens });
         if (r.ok) setConcluido(r.dados!); else message.error(r.erro);
       }),
-    );
+    ).catch(() => undefined /* erros já exibidos nos campos */);
 
   return (
     <Card className={canal === "POS_VENDA" ? "borda-pos-venda" : "borda-pos-consumo"}>

@@ -10,7 +10,7 @@ const P = { min: 0, max: 100, suffix: "%", className: "!w-full" } as const;
 export function FormParametros({ parametros }: { parametros: ParametrosDominio }) {
   const { message } = App.useApp();
   const [pendente, iniciar] = useTransition();
-  const pcts = ["custoReparoPercentual", "pctRevendaEstoque", "pctRevendaRecondicionado", "pctPecas", "pctCreditoFornecedor"] as const;
+  const pcts = ["custoReparoPercentual", "pctRevendaEstoque", "pctRevendaRecondicionado", "pctRevendaSegundaVida", "pctPecas", "pctCreditoFornecedor"] as const;
   const inicial = { ...parametros, ...Object.fromEntries(pcts.map((k) => [k, Math.round(parametros[k] * 100)])) };
   return (
     <Form
@@ -39,7 +39,8 @@ export function FormParametros({ parametros }: { parametros: ParametrosDominio }
         </Card>
         <Card size="small" title="Valor recuperado estimado">
           <Form.Item name="pctRevendaEstoque" label="Retorno ao estoque (% do preço)"><InputNumber {...P} /></Form.Item>
-          <Form.Item name="pctRevendaRecondicionado" label="Recondicionado / outlet (% do preço)"><InputNumber {...P} /></Form.Item>
+          <Form.Item name="pctRevendaRecondicionado" label="Recondicionado / outlet — pós-venda (% do preço)"><InputNumber {...P} /></Form.Item>
+          <Form.Item name="pctRevendaSegundaVida" label="Segunda vida — pós-consumo (% do preço de novo)"><InputNumber {...P} /></Form.Item>
           <Form.Item name="pctPecas" label="Desmontagem para peças (% do preço)"><InputNumber {...P} /></Form.Item>
           <Form.Item name="pctCreditoFornecedor" label="Crédito do fornecedor (% do custo)"><InputNumber {...P} /></Form.Item>
           <p className="text-xs text-gray-500">Reciclagem: Σ massa reciclável × preço de sucata do material.</p>

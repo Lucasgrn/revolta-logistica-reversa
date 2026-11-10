@@ -22,7 +22,7 @@ export function Materiais({ materiais }: { materiais: Material[] }) {
         const r = await salvarMaterial({ nome: v.nome, fatorCo2: v.fatorCo2, precoSucata: v.precoSucata, reciclavel: v.reciclavel, perigoso: v.perigoso, id: editando === "novo" ? undefined : editando?.id });
         if (r.ok) { message.success("Material salvo"); setEditando(null); router.refresh(); } else message.error(r.erro);
       }),
-    );
+    ).catch(() => undefined /* erros já exibidos nos campos */);
   return (
     <>
       <div className="mb-3 flex justify-end"><Button type="primary" icon={<PlusOutlined />} onClick={() => abrir("novo")}>Novo material</Button></div>

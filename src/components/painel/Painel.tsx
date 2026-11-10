@@ -94,7 +94,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
             <Kpi titulo="Devoluções" valor={num(kpis.devolucoes)} detalhe={<><Tag color="geekblue" className="!m-0">{kpis.posVenda} pós-venda</Tag> <Tag color="green" className="!m-0">{kpis.posConsumo} pós-consumo</Tag></>} />
           </Col>
           <Col xs={12} md={8} xl={4}><Kpi titulo="Custo reverso total" valor={brl(kpis.custoTotal)} detalhe={kpis.custoMedioItem != null ? `${brl(kpis.custoMedioItem)} por item` : undefined} /></Col>
-          <Col xs={12} md={8} xl={4}><Kpi titulo="Valor recuperado" valor={brl(kpis.valorRecuperado)} detalhe={`${pct(kpis.taxaRecuperacaoValor)} do valor de venda`} dica="Taxa de recuperação de valor = valor recuperado ÷ valor de venda dos itens devolvidos." /></Col>
+          <Col xs={12} md={8} xl={4}><Kpi titulo="Valor recuperado" valor={brl(kpis.valorRecuperado)} detalhe={`${pct(kpis.taxaRecuperacaoValor)} do valor de venda (pós-venda)`} dica="Taxa de recuperação de valor = valor recuperado no pós-venda ÷ valor de venda dos itens devolvidos no pós-venda. O pós-consumo não entra: não há venda de referência." /></Col>
           <Col xs={12} md={8} xl={4}><Kpi titulo="Resultado líquido" valor={brl(kpis.resultadoLiquido)} detalhe="recuperado − custos reversos" destaque={kpis.resultadoLiquido >= 0 ? "bom" : "ruim"} /></Col>
           <Col xs={12} md={8} xl={4}><Kpi titulo="Tempo médio de ciclo" valor={kpis.tempoMedioCicloDias != null ? `${num(kpis.tempoMedioCicloDias)} dias` : "—"} detalhe="da solicitação ao encerramento" /></Col>
           <Col xs={12} md={8} xl={4}><Kpi titulo="Taxa de recusa" valor={pct(kpis.taxaRecusa)} detalhe={`${kpis.itensDestinados} de ${kpis.itens} itens destinados`} /></Col>

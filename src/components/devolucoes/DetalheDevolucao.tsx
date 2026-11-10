@@ -257,7 +257,7 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
       {/* Modais de transição */}
       <Modal
         open={modal === "transito"} title="Registrar coleta / envio" okText="Confirmar" confirmLoading={pendente} onCancel={() => setModal(null)} destroyOnHidden
-        onOk={() => form.validateFields().then((v) => rodar(() => acoes.registrarTransito(d.id, v), "Devolução em trânsito"))}
+        onOk={() => form.validateFields().then((v) => rodar(() => acoes.registrarTransito(d.id, v), "Devolução em trânsito")).catch(() => undefined /* erros já exibidos nos campos */)}
       >
         <Form form={form} layout="vertical" initialValues={{ valorFrete: 0 }}>
           <Form.Item name="transportadora" label="Transportadora / modalidade" rules={[{ required: true, message: "Informe a transportadora" }]}>
@@ -272,7 +272,7 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
 
       <Modal
         open={modal === "recebimento"} title="Registrar recebimento" okText="Confirmar recebimento" confirmLoading={pendente} onCancel={() => setModal(null)} destroyOnHidden
-        onOk={() => form.validateFields().then((v) => rodar(() => acoes.registrarRecebimento(d.id, v.observacao), "Recebimento registrado"))}
+        onOk={() => form.validateFields().then((v) => rodar(() => acoes.registrarRecebimento(d.id, v.observacao), "Recebimento registrado")).catch(() => undefined /* erros já exibidos nos campos */)}
       >
         <p className="mb-3 text-sm text-gray-600">Confira a quantidade ({d.itens.length} item(ns)) e a massa esperada ({kg(impacto.massa)}). A data de hoje inicia a contagem de armazenagem.</p>
         <Form form={form} layout="vertical"><Form.Item name="observacao" label="Observações da conferência"><Input.TextArea rows={3} /></Form.Item></Form>
@@ -280,7 +280,7 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
 
       <Modal
         open={modal === "recusa"} title="Recusar devolução" okText="Recusar" okButtonProps={{ danger: true }} confirmLoading={pendente} onCancel={() => setModal(null)} destroyOnHidden
-        onOk={() => form.validateFields().then((v) => rodar(() => acoes.recusar(d.id, v.justificativa), "Devolução recusada"))}
+        onOk={() => form.validateFields().then((v) => rodar(() => acoes.recusar(d.id, v.justificativa), "Devolução recusada")).catch(() => undefined /* erros já exibidos nos campos */)}
       >
         <Form form={form} layout="vertical" initialValues={{ justificativa: d.alertas[0] ?? "" }}>
           <Form.Item name="justificativa" label="Justificativa" rules={[{ required: true, message: "Informe a justificativa" }]}><Input.TextArea rows={3} /></Form.Item>
@@ -289,7 +289,7 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
 
       <Modal
         open={modal === "custo"} title="Lançar custo reverso" okText="Lançar" confirmLoading={pendente} onCancel={() => setModal(null)} destroyOnHidden
-        onOk={() => form.validateFields().then((v) => rodar(() => acoes.lancarCusto(d.id, v), "Custo lançado"))}
+        onOk={() => form.validateFields().then((v) => rodar(() => acoes.lancarCusto(d.id, v), "Custo lançado")).catch(() => undefined /* erros já exibidos nos campos */)}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="tipo" label="Tipo" rules={[{ required: true, message: "Escolha o tipo" }]}>
@@ -306,7 +306,7 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
       {itemTriagem != null && (
         <ModalTriagem
           item={d.itens.find((i) => i.id === itemTriagem)!}
-          devolucao={{ id: d.id, recebidaEm: d.recebidaEm, dataEntrega: d.venda?.dataEntrega ?? null }}
+          devolucao={{ id: d.id, canal: d.canal, recebidaEm: d.recebidaEm, dataEntrega: d.venda?.dataEntrega ?? null }}
           parametros={parametros}
           onFechar={(salvo) => {
             setItemTriagem(null);

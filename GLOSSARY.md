@@ -68,6 +68,10 @@ _Avoid_: Estado, grade, qualidade
 Caminho final de um item devolvido, em ordem de prioridade: Retorno ao estoque, Recondicionamento, Devolução ao fornecedor, Desmontagem para peças, Reciclagem, Descarte adequado.
 _Avoid_: Disposição, destino, encaminhamento
 
+**Segunda Vida**:
+Recondicionamento de um produto de pós-consumo ainda funcional para revenda como usado; ele nunca volta ao estoque como novo.
+_Avoid_: Seminovo, reuso
+
 **Descarte adequado**:
 Disposição final ambientalmente adequada (aterro industrial, coprocessamento) do que não pode ser reaproveitado; única destinação que não conta como reaproveitamento.
 _Avoid_: Lixo, descarte
@@ -87,7 +91,7 @@ Valor recuperado menos custos reversos, de um item, devolução ou período.
 _Avoid_: Lucro, saldo, margem
 
 **Taxa de Recuperação de Valor**:
-Fração do valor de venda dos itens devolvidos que voltou como valor recuperado.
+Fração do valor de venda dos itens devolvidos no pós-venda que voltou como valor recuperado; o pós-consumo não entra, pois não há venda de referência.
 _Avoid_: ROI, retorno
 
 **Taxa de Devolução**:

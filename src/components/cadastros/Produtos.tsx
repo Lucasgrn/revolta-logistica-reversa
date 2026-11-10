@@ -33,7 +33,7 @@ export function Produtos({ produtos, materiais }: { produtos: ProdutoCadastro[];
         const r = await salvarProduto({ ...v, id: editando === "novo" ? undefined : editando?.id });
         if (r.ok) { message.success("Produto salvo"); setEditando(null); router.refresh(); } else message.error(r.erro);
       }),
-    );
+    ).catch(() => undefined /* erros já exibidos nos campos */);
 
   return (
     <>

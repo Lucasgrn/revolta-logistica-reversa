@@ -266,6 +266,7 @@ model Parametros {
   custoTransporteKg      Float @default(0.45)
   pctRevendaEstoque      Float @default(1.0)
   pctRevendaRecondicionado Float @default(0.6)
+  pctRevendaSegundaVida  Float @default(0.25)
   pctPecas               Float @default(0.15)
   pctCreditoFornecedor   Float @default(1.0)
 }

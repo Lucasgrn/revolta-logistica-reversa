@@ -1,7 +1,7 @@
 // Regras de processamento de um Item Devolvido:
 // sugestão de destinação, valor recuperado estimado, custos reversos automáticos
 // e impacto ambiental.
-import type { Categoria, Condicao, Destinacao, TipoCusto, TipoRecuperacao } from "../generated/prisma/enums";
+import type { Canal, Categoria, Condicao, Destinacao, TipoCusto, TipoRecuperacao } from "../generated/prisma/enums";
 import { diasEntre } from "./politica";
 
 export interface MaterialDominio {
@@ -36,6 +36,8 @@ export interface ParametrosDominio {
   custoTransporteKg: number;
   pctRevendaEstoque: number;
   pctRevendaRecondicionado: number;
+  /** Revenda de produto de pós-consumo recondicionado para segunda vida (% do preço de novo). */
+  pctRevendaSegundaVida: number;
   pctPecas: number;
   pctCreditoFornecedor: number;
 }
@@ -69,11 +71,13 @@ export interface Sugestao {
 }
 
 export function sugerirDestinacao(entrada: {
+  canal: Canal;
   condicao: Condicao;
   dentroGarantia: boolean;
   produto: Pick<ProdutoDominio, "preco" | "composicao">;
 }): Sugestao {
-  const { condicao, dentroGarantia, produto } = entrada;
+  const { canal, condicao, dentroGarantia, produto } = entrada;
+  if (canal === "POS_CONSUMO" && condicao !== "D") return sugerirPosConsumo(condicao);
   switch (condicao) {
     case "A":
       return { destinacao: "RETORNO_ESTOQUE", justificativa: "Item como novo: volta ao estoque para revenda." };
@@ -112,6 +116,23 @@ export function sugerirDestinacao(entrada: {
   }
 }
 
+/**
+ * Pós-consumo: o produto já cumpriu sua vida útil com o cliente. Ele nunca volta ao estoque
+ * como novo; quando funcional, ganha uma segunda vida recondicionado; com defeito,
+ * o reparo não se justifica e os componentes são aproveitados.
+ */
+function sugerirPosConsumo(condicao: Exclude<Condicao, "D">): Sugestao {
+  if (condicao === "C")
+    return {
+      destinacao: "DESMONTAGEM_PECAS",
+      justificativa: "Produto em fim de vida com defeito: o reparo não se justifica; aproveitar componentes.",
+    };
+  return {
+    destinacao: "RECONDICIONAMENTO",
+    justificativa: "Produto de pós-consumo funcional: recondicionar para segunda vida (revenda como usado).",
+  };
+}
+
 // ───────────── Valor recuperado estimado ─────────────
 
 export interface Recuperacao {
@@ -123,12 +144,15 @@ export function valorRecuperadoEstimado(
   destinacao: Destinacao,
   produto: ProdutoDominio,
   p: ParametrosDominio,
+  canal: Canal,
 ): Recuperacao | null {
   switch (destinacao) {
     case "RETORNO_ESTOQUE":
       return { tipo: "REVENDA", valor: arred(produto.preco * p.pctRevendaEstoque) };
-    case "RECONDICIONAMENTO":
-      return { tipo: "REVENDA", valor: arred(produto.preco * p.pctRevendaRecondicionado) };
+    case "RECONDICIONAMENTO": {
+      const pct = canal === "POS_CONSUMO" ? p.pctRevendaSegundaVida : p.pctRevendaRecondicionado;
+      return { tipo: "REVENDA", valor: arred(produto.preco * pct) };
+    }
     case "DEVOLUCAO_FORNECEDOR":
       return { tipo: "CREDITO_FORNECEDOR", valor: arred(produto.custo * p.pctCreditoFornecedor) };
     case "DESMONTAGEM_PECAS":

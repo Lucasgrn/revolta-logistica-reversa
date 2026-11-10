@@ -81,9 +81,24 @@ export async function abrirDevolucao(tx: Tx, a: AberturaDevolucao) {
   const venda = a.vendaId ? await tx.venda.findUniqueOrThrow({ where: { id: a.vendaId }, include: { itens: true } }) : null;
   if (venda) {
     if (venda.clienteId !== a.clienteId) throw new ErroDominio("A venda não pertence a este cliente.");
-    for (const i of a.itens) {
-      const vendido = venda.itens.filter((v) => v.produtoId === i.produtoId).reduce((s, v) => s + v.quantidade, 0);
-      if (i.quantidade > vendido) throw new ErroDominio("Quantidade devolvida maior que a vendida.");
+    // Considera também o que já foi devolvido desta venda em solicitações anteriores (exceto recusadas).
+    const jaDevolvidos = await tx.itemDevolvido.groupBy({
+      by: ["produtoId"],
+      _count: { _all: true },
+      where: { devolucao: { vendaId: venda.id, status: { not: "RECUSADA" } } },
+    });
+    const solicitado = new Map<number, number>();
+    for (const i of a.itens) solicitado.set(i.produtoId, (solicitado.get(i.produtoId) ?? 0) + i.quantidade);
+    for (const [produtoId, qtd] of solicitado) {
+      const vendido = venda.itens.filter((v) => v.produtoId === produtoId).reduce((s, v) => s + v.quantidade, 0);
+      const devolvido = jaDevolvidos.find((j) => j.produtoId === produtoId)?._count._all ?? 0;
+      if (qtd > vendido - devolvido) {
+        throw new ErroDominio(
+          devolvido > 0
+            ? `Quantidade devolvida maior que a disponível: ${vendido} vendida(s), ${devolvido} já devolvida(s).`
+            : "Quantidade devolvida maior que a vendida.",
+        );
+      }
     }
   }
   const produtos = await tx.produto.findMany({ where: { id: { in: a.itens.map((i) => i.produtoId) } } });
@@ -178,6 +193,7 @@ export async function sugestaoParaItem(tx: Tx, itemId: number, condicao: Condica
     include: { produto: { include: INCLUDE_PRODUTO }, devolucao: { include: { venda: true } } },
   });
   return sugerirDestinacao({
+    canal: item.devolucao.canal,
     condicao,
     dentroGarantia: dentroDaGarantia(item.devolucao.venda?.dataEntrega, item.produto.garantiaMeses, em),
     produto: item.produto,
@@ -209,6 +225,7 @@ export async function destinarItem(
   const parametros = await obterParametros(tx);
   const produto = dominioProduto(item.produto);
   const sugestao = sugerirDestinacao({
+    canal: dev.canal,
     condicao: r.condicao,
     dentroGarantia: dentroDaGarantia(dev.venda?.dataEntrega, produto.garantiaMeses, em),
     produto,
@@ -242,7 +259,7 @@ export async function destinarItem(
     data: custos.map((c) => ({ ...c, devolucaoId: dev.id, itemId, automatico: true, criadoEm: em })),
   });
 
-  const estimado = valorRecuperadoEstimado(r.destinacao, produto, parametros);
+  const estimado = valorRecuperadoEstimado(r.destinacao, produto, parametros, dev.canal);
   if (estimado) {
     const manual = r.valorRecuperado != null;
     await tx.valorRecuperado.create({
