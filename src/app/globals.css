@@ -103,3 +103,11 @@ body {
     transform: none;
   }
 }
+
+/* Esqueleto de navegação: só aparece se a tela demorar mais de ~150 ms, evitando um "piscar" em respostas rápidas. */
+.carregando {
+  animation: carregando-aparecer 200ms var(--ease-out) 150ms both;
+}
+@keyframes carregando-aparecer {
+  from { opacity: 0; }
+}

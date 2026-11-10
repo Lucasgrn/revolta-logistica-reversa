@@ -17,6 +17,8 @@ export function Shell({ usuario, children }: { usuario: { nome: string; papel: P
   const caminho = usePathname();
   const telas = Grid.useBreakpoint();
   const [aberto, setAberto] = useState(false);
+  // Destaca o item clicado na hora, sem esperar o servidor responder; volta a seguir a URL quando ela muda.
+  const [clicado, setClicado] = useState<{ chave: string; em: string } | null>(null);
   const gestor = usuario.papel === "GESTOR";
   const podeRegistrar = usuario.papel !== "ANALISTA";
 
@@ -42,7 +44,17 @@ export function Shell({ usuario, children }: { usuario: { nome: string; papel: P
     .sort((a, b) => b.length - a.length)[0];
 
   const menu = (
-    <Menu theme="dark" mode="inline" selectedKeys={selecionado ? [selecionado] : []} defaultOpenKeys={["cadastros"]} items={itens} onClick={() => setAberto(false)} />
+    <Menu
+      theme="dark"
+      mode="inline"
+      selectedKeys={clicado?.em === caminho ? [clicado.chave] : selecionado ? [selecionado] : []}
+      defaultOpenKeys={["cadastros"]}
+      items={itens}
+      onClick={({ key }) => {
+        setAberto(false);
+        if (key !== caminho) setClicado({ chave: key, em: caminho });
+      }}
+    />
   );
   const logo = (
     <div className="px-6 py-5">
