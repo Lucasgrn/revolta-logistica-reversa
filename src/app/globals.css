@@ -1,0 +1,27 @@
+/* Ordem das camadas: os estilos do Ant Design (camada "antd") ficam acima do
+   reset do Tailwind e abaixo dos utilitários — assim classes Tailwind podem
+   ajustar componentes antd sem !important. */
+@layer theme, base, antd, components, utilities;
+
+@import "tailwindcss";
+
+@theme {
+  --color-marca: #1f7a5a;
+  --color-marca-claro: #e8f4ef;
+  --color-pos-venda: #2a78d6;
+  --color-pos-consumo: #1baf7a;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+}
+
+html,
+body {
+  background: #f5f7f6;
+  color: #1f2421;
+}
+
+.borda-pos-venda {
+  box-shadow: inset 4px 0 0 var(--color-pos-venda);
+}
+.borda-pos-consumo {
+  box-shadow: inset 4px 0 0 var(--color-pos-consumo);
+}

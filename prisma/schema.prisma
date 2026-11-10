@@ -1,0 +1,271 @@
+// Modelo de dados — Logística Reversa no Varejo de Energia
+// Vocabulário: ver GLOSSARY.md
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────── Pessoas e papéis ─────────────
+
+enum Papel {
+  OPERADOR
+  ANALISTA
+  GESTOR
+}
+
+model Usuario {
+  id        Int    @id @default(autoincrement())
+  nome      String
+  email     String @unique
+  senhaHash String
+  papel     Papel
+}
+
+model Cliente {
+  id         Int         @id @default(autoincrement())
+  nome       String
+  documento  String
+  email      String      @unique
+  cidade     String
+  uf         String
+  vendas     Venda[]
+  devolucoes Devolucao[]
+}
+
+// ───────────── Catálogo ─────────────
+
+enum Categoria {
+  PAINEL_SOLAR
+  INVERSOR
+  BATERIA
+  MEDIDOR
+  ILUMINACAO_LED
+  CABOS_CONECTORES
+}
+
+model Material {
+  id           Int                  @id @default(autoincrement())
+  nome         String               @unique
+  /// kgCO2e evitados por kg reaproveitado
+  fatorCo2     Float
+  /// R$ por kg vendido como sucata
+  precoSucata  Float
+  reciclavel   Boolean
+  perigoso     Boolean
+  composicoes  ComposicaoMaterial[]
+}
+
+model Produto {
+  id            Int                  @id @default(autoincrement())
+  sku           String               @unique
+  nome          String
+  categoria     Categoria
+  /// preço de venda (R$)
+  preco         Float
+  /// custo de aquisição junto ao fornecedor (R$)
+  custo         Float
+  garantiaMeses Int
+  composicao    ComposicaoMaterial[]
+  itensVenda    ItemVenda[]
+  itensDevolvidos ItemDevolvido[]
+}
+
+model ComposicaoMaterial {
+  produtoId  Int
+  materialId Int
+  massaKg    Float
+  produto    Produto  @relation(fields: [produtoId], references: [id], onDelete: Cascade)
+  material   Material @relation(fields: [materialId], references: [id])
+
+  @@id([produtoId, materialId])
+}
+
+// ───────────── Vendas (referência importada do e-commerce) ─────────────
+
+model Venda {
+  id          Int         @id @default(autoincrement())
+  numero      String      @unique
+  clienteId   Int
+  dataEntrega DateTime
+  cliente     Cliente     @relation(fields: [clienteId], references: [id])
+  itens       ItemVenda[]
+  devolucoes  Devolucao[]
+}
+
+model ItemVenda {
+  id            Int     @id @default(autoincrement())
+  vendaId       Int
+  produtoId     Int
+  quantidade    Int
+  precoUnitario Float
+  venda         Venda   @relation(fields: [vendaId], references: [id], onDelete: Cascade)
+  produto       Produto @relation(fields: [produtoId], references: [id])
+}
+
+// ───────────── Fluxo reverso ─────────────
+
+enum Canal {
+  POS_VENDA
+  POS_CONSUMO
+}
+
+enum Motivo {
+  ARREPENDIMENTO
+  DEFEITO
+  AVARIA_TRANSPORTE
+  ITEM_ERRADO
+  GARANTIA
+  FIM_DE_VIDA
+  TROCA_TECNOLOGICA
+}
+
+enum StatusDevolucao {
+  SOLICITADA
+  EM_TRANSITO
+  RECEBIDA
+  EM_TRIAGEM
+  DESTINADA
+  ENCERRADA
+  RECUSADA
+}
+
+enum Origem {
+  PORTAL
+  INTERNO
+}
+
+enum Condicao {
+  A
+  B
+  C
+  D
+}
+
+enum Destinacao {
+  RETORNO_ESTOQUE
+  RECONDICIONAMENTO
+  DEVOLUCAO_FORNECEDOR
+  DESMONTAGEM_PECAS
+  RECICLAGEM
+  DESCARTE
+}
+
+model Devolucao {
+  id            Int             @id @default(autoincrement())
+  protocolo     String          @unique
+  canal         Canal
+  motivo        Motivo
+  status        StatusDevolucao @default(SOLICITADA)
+  origem        Origem
+  descricao     String          @default("")
+  /// Alertas de Política gerados na abertura
+  alertas       String[]
+  clienteId     Int
+  vendaId       Int?
+  transportadora String?
+  rastreio      String?
+  criadaEm      DateTime        @default(now())
+  recebidaEm    DateTime?
+  encerradaEm   DateTime?
+  cliente       Cliente         @relation(fields: [clienteId], references: [id])
+  venda         Venda?          @relation(fields: [vendaId], references: [id])
+  itens         ItemDevolvido[]
+  custos        CustoReverso[]
+  recuperacoes  ValorRecuperado[]
+  historico     HistoricoStatus[]
+
+  @@index([criadaEm])
+  @@index([status])
+}
+
+model ItemDevolvido {
+  id                  Int         @id @default(autoincrement())
+  devolucaoId         Int
+  produtoId           Int
+  numeroSerie         String?
+  condicao            Condicao?
+  observacao          String?
+  destinacaoSugerida  Destinacao?
+  destinacao          Destinacao?
+  inspecionadoPor     String?
+  destinadoEm         DateTime?
+  devolucao           Devolucao   @relation(fields: [devolucaoId], references: [id], onDelete: Cascade)
+  produto             Produto     @relation(fields: [produtoId], references: [id])
+  custos              CustoReverso[]
+  recuperacoes        ValorRecuperado[]
+}
+
+enum TipoCusto {
+  FRETE_REVERSO
+  TRIAGEM
+  REPARO
+  ARMAZENAGEM
+  TRANSPORTE_DESCARTE
+  EMBALAGEM
+}
+
+model CustoReverso {
+  id          Int            @id @default(autoincrement())
+  devolucaoId Int
+  itemId      Int?
+  tipo        TipoCusto
+  valor       Float
+  descricao   String         @default("")
+  /// true quando calculado pelos parâmetros; false quando lançado à mão
+  automatico  Boolean        @default(false)
+  criadoEm    DateTime       @default(now())
+  devolucao   Devolucao      @relation(fields: [devolucaoId], references: [id], onDelete: Cascade)
+  item        ItemDevolvido? @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+enum TipoRecuperacao {
+  REVENDA
+  CREDITO_FORNECEDOR
+  SUCATA
+}
+
+model ValorRecuperado {
+  id          Int             @id @default(autoincrement())
+  devolucaoId Int
+  itemId      Int?
+  tipo        TipoRecuperacao
+  valor       Float
+  /// true enquanto for estimativa por parâmetros; false quando confirmado o valor real
+  estimado    Boolean         @default(true)
+  criadoEm    DateTime        @default(now())
+  devolucao   Devolucao       @relation(fields: [devolucaoId], references: [id], onDelete: Cascade)
+  item        ItemDevolvido?  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model HistoricoStatus {
+  id          Int              @id @default(autoincrement())
+  devolucaoId Int
+  de          StatusDevolucao?
+  para        StatusDevolucao
+  usuario     String
+  observacao  String           @default("")
+  em          DateTime         @default(now())
+  devolucao   Devolucao        @relation(fields: [devolucaoId], references: [id], onDelete: Cascade)
+}
+
+// ───────────── Parâmetros de custo e recuperação (linha única) ─────────────
+
+model Parametros {
+  id                     Int   @id @default(1)
+  prazoArrependimentoDias Int  @default(7)
+  custoTriagemItem       Float @default(18)
+  custoArmazenagemDia    Float @default(1.5)
+  custoEmbalagemItem     Float @default(12)
+  custoReparoPercentual  Float @default(0.15)
+  custoDescarteKg        Float @default(2.8)
+  custoTransporteKg      Float @default(0.45)
+  pctRevendaEstoque      Float @default(1.0)
+  pctRevendaRecondicionado Float @default(0.6)
+  pctPecas               Float @default(0.15)
+  pctCreditoFornecedor   Float @default(1.0)
+}
