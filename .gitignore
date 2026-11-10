@@ -43,3 +43,9 @@ next-env.d.ts
 
 /src/generated/prisma
 /src/generated/
+
+# skills de agentes instaladas localmente
+/.agents/
+/.claude/
+skills-lock.json
+*.log
