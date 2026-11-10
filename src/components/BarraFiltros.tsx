@@ -1,10 +1,10 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useTransition } from "react";
 import { Button, DatePicker, Input, Select } from "antd";
 import { ClearOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { CANAL, CATEGORIA, MOTIVO, STATUS } from "@/domain/rotulos";
+import { useFiltragem } from "./Filtragem";
 
 const opcoes = (r: Record<string, string | { rotulo: string }>) =>
   Object.entries(r).map(([value, v]) => ({ value, label: typeof v === "string" ? v : v.rotulo }));
@@ -15,7 +15,7 @@ export function BarraFiltros({ inicio, fim, campos = ["canal", "categoria", "mot
   const router = useRouter();
   const caminho = usePathname();
   const sp = useSearchParams();
-  const [pendente, iniciar] = useTransition();
+  const { iniciar } = useFiltragem();
 
   const definir = (mudancas: Record<string, string | undefined>) => {
     const p = new URLSearchParams(sp.toString());
@@ -27,7 +27,7 @@ export function BarraFiltros({ inicio, fim, campos = ["canal", "categoria", "mot
   };
 
   return (
-    <div className={`mb-4 flex flex-wrap items-center gap-2 transition-opacity ${pendente ? "opacity-60" : ""}`}>
+    <div className="mb-4 flex flex-wrap items-center gap-2">
       <DatePicker.RangePicker
         allowClear={false}
         value={[dayjs(inicio), dayjs(fim)]}

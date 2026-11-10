@@ -22,7 +22,7 @@ export function FormPortal({ produtos }: { produtos: { id: number; nome: string;
 
   if (concluido)
     return (
-      <Card>
+      <Card className="entrada-sucesso">
         <Result
           status="success"
           title="Solicitação registrada!"
@@ -37,12 +37,12 @@ export function FormPortal({ produtos }: { produtos: { id: number; nome: string;
   if (!canal)
     return (
       <div className="grid gap-4 sm:grid-cols-2">
-        <button onClick={() => setCanal("POS_VENDA")} className="borda-pos-venda rounded-xl bg-white p-5 text-left shadow-sm transition hover:shadow-md">
+        <button onClick={() => setCanal("POS_VENDA")} className="borda-pos-venda rounded-xl bg-white p-5 text-left shadow-sm transition-[box-shadow,transform] duration-150 ease-[var(--ease-out)] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f7a5a] focus-visible:ring-offset-2 motion-reduce:active:scale-100">
           <ShoppingOutlined className="text-2xl text-pos-venda" />
           <h2 className="mt-2 font-semibold">Devolução de compra</h2>
           <p className="text-sm text-gray-600">Arrependimento, defeito, avaria no transporte, item errado ou garantia de um pedido feito conosco.</p>
         </button>
-        <button onClick={() => setCanal("POS_CONSUMO")} className="borda-pos-consumo rounded-xl bg-white p-5 text-left shadow-sm transition hover:shadow-md">
+        <button onClick={() => setCanal("POS_CONSUMO")} className="borda-pos-consumo rounded-xl bg-white p-5 text-left shadow-sm transition-[box-shadow,transform] duration-150 ease-[var(--ease-out)] hover:shadow-md active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f7a5a] focus-visible:ring-offset-2 motion-reduce:active:scale-100">
           <SyncOutlined className="text-2xl text-pos-consumo" />
           <h2 className="mt-2 font-semibold">Descarte responsável</h2>
           <p className="text-sm text-gray-600">Entregue produtos em fim de vida útil — mesmo que comprados em outro lugar — para reciclagem ou destinação adequada.</p>

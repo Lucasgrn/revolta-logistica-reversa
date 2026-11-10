@@ -84,7 +84,7 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
         </Form.Item>
 
         {sugestao && (
-          <Alert className="!mb-3" type="success" icon={<BulbOutlined />} showIcon title={<>Sugestão: <b>{DESTINACAO[sugestao.destinacao].rotulo}</b></>} description={sugestao.justificativa} />
+          <Alert key={sugestao.destinacao} className="entrada-suave !mb-3" type="success" icon={<BulbOutlined />} showIcon title={<>Sugestão: <b>{DESTINACAO[sugestao.destinacao].rotulo}</b></>} description={sugestao.justificativa} />
         )}
 
         <Form.Item label="2. Destinação" required>
@@ -102,7 +102,7 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
       </Form>
 
       {previa && (
-        <>
+        <div className="entrada-suave">
           <Divider titlePlacement="start" className="!my-2">3. Resultado calculado</Divider>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -126,7 +126,7 @@ export function ModalTriagem({ item, devolucao, parametros, onFechar }: {
               {previa.impacto.massaPerigosaKg > 0 && <Tag color="orange">Contém {kg(previa.impacto.massaPerigosaKg)} de material perigoso</Tag>}
             </div>
           </div>
-        </>
+        </div>
       )}
     </Modal>
   );

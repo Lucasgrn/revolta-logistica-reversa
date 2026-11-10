@@ -25,3 +25,81 @@ body {
 .borda-pos-consumo {
   box-shadow: inset 4px 0 0 var(--color-pos-consumo);
 }
+
+/* ───────────── Movimento ───────────── */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer components {
+  /* Resposta imediata ao pressionar: escala sutil, sem "transition: all". */
+  .ant-btn {
+    transition:
+      color 150ms ease,
+      background-color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      transform 160ms var(--ease-out);
+  }
+  .ant-btn:not(:disabled):active {
+    transform: scale(0.97);
+  }
+
+  /* Números alinhados: valores não "dançam" ao trocar filtros. */
+  .ant-table-cell,
+  .ant-statistic-content,
+  .ant-input-number-input {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Conteúdo que surge após uma escolha (ex.: sugestão de destinação na triagem). */
+.entrada-suave {
+  transition: opacity 180ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+/* Confirmação rara e emocional (sucesso no Portal do Cliente). */
+.entrada-sucesso {
+  transition: opacity 250ms var(--ease-out);
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+/* Área de dados enquanto um novo filtro carrega. */
+.area-dados {
+  transition: opacity 150ms ease;
+}
+.area-dados[data-pendente="true"] {
+  opacity: 0.55;
+}
+
+/* Deslocamento só para quem não pediu movimento reduzido; para os demais, apenas o fade. */
+@media (prefers-reduced-motion: no-preference) {
+  .entrada-suave {
+    transition-property: opacity, transform;
+    @starting-style {
+      transform: translateY(4px);
+    }
+  }
+  .entrada-sucesso {
+    transition-property: opacity, transform;
+    @starting-style {
+      transform: scale(0.97);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ant-btn:not(:disabled):active {
+    transform: none;
+  }
+}

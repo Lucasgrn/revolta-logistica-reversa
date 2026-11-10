@@ -1,5 +1,6 @@
 import { BotaoNova } from "@/components/devolucoes/BotaoNova";
 import { BarraFiltros } from "@/components/BarraFiltros";
+import { AreaDados, Filtragem } from "@/components/Filtragem";
 import { TabelaDevolucoes } from "@/components/devolucoes/TabelaDevolucoes";
 import { pode } from "@/domain/fluxo";
 import { exigirSessao } from "@/lib/sessao";
@@ -23,8 +24,10 @@ export default async function PaginaDevolucoes({ searchParams }: { searchParams:
           <BotaoNova />
         )}
       </div>
-      <BarraFiltros inicio={f.inicio.toISOString().slice(0, 10)} fim={f.fim.toISOString().slice(0, 10)} campos={["busca", "canal", "status", "motivo", "categoria"]} />
-      <TabelaDevolucoes linhas={linhas} />
+      <Filtragem>
+        <BarraFiltros inicio={f.inicio.toISOString().slice(0, 10)} fim={f.fim.toISOString().slice(0, 10)} campos={["busca", "canal", "status", "motivo", "categoria"]} />
+        <AreaDados><TabelaDevolucoes linhas={linhas} /></AreaDados>
+      </Filtragem>
     </div>
   );
 }

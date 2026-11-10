@@ -1,5 +1,6 @@
 import { Alert, Card } from "antd";
 import { BarraFiltros } from "@/components/BarraFiltros";
+import { AreaDados, Filtragem } from "@/components/Filtragem";
 import { TabelaPnrs } from "@/components/TabelaPnrs";
 import { BotaoImprimir } from "@/components/BotaoImprimir";
 import { exigirSessao } from "@/lib/sessao";
@@ -24,8 +25,10 @@ export default async function RelatorioPnrs({ searchParams }: { searchParams: Pr
         title="Política Nacional de Resíduos Sólidos — Lei 12.305/2010"
         description="Comerciantes de pilhas e baterias, lâmpadas e produtos eletroeletrônicos devem estruturar sistemas de logística reversa (art. 33), observando a ordem de prioridade: não geração, redução, reutilização, reciclagem, tratamento e disposição final ambientalmente adequada (art. 9º). O Decreto 10.240/2020 regulamenta o sistema para eletroeletrônicos de uso doméstico."
       />
-      <div className="print:hidden"><BarraFiltros inicio={f.inicio.toISOString().slice(0, 10)} fim={f.fim.toISOString().slice(0, 10)} campos={[]} /></div>
-      <Card size="small"><TabelaPnrs linhas={linhas} /></Card>
+      <Filtragem>
+        <div className="print:hidden"><BarraFiltros inicio={f.inicio.toISOString().slice(0, 10)} fim={f.fim.toISOString().slice(0, 10)} campos={[]} /></div>
+        <AreaDados><Card size="small"><TabelaPnrs linhas={linhas} /></Card></AreaDados>
+      </Filtragem>
     </div>
   );
 }

@@ -21,7 +21,7 @@ function Kpi({ titulo, valor, detalhe, dica, destaque }: { titulo: string; valor
         {titulo}
         {dica && <Dica title={dica}><InfoCircleOutlined /></Dica>}
       </div>
-      <div className={`mt-1 text-2xl font-semibold ${destaque === "ruim" ? "text-red-700" : destaque === "bom" ? "text-emerald-700" : ""}`}>{valor}</div>
+      <div className={`mt-1 text-2xl font-semibold tabular-nums ${destaque === "ruim" ? "text-red-700" : destaque === "bom" ? "text-emerald-700" : ""}`}>{valor}</div>
       {detalhe && <div className="mt-1 text-xs text-gray-500">{detalhe}</div>}
     </Card>
   );
@@ -76,7 +76,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
           <Col xs={12} md={8} xl={5}>
             <Card size="small" className="h-full">
               <div className="text-xs text-gray-500">Taxa de reaproveitamento</div>
-              <div className="mt-1 text-2xl font-semibold text-emerald-700">{pct(kpis.taxaReaproveitamento)}</div>
+              <div className="mt-1 text-2xl font-semibold tabular-nums text-emerald-700">{pct(kpis.taxaReaproveitamento)}</div>
               <Progress percent={Math.round((kpis.taxaReaproveitamento ?? 0) * 100)} showInfo={false} strokeColor="#1baf7a" size="small" />
             </Card>
           </Col>
@@ -112,8 +112,8 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <YAxis tick={EIXO} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => num(v)} />
                 <Tooltip cursor={{ fill: "#00000008" }} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="posVenda" name="Pós-venda" stackId="c" fill={COR.posVenda} stroke="#fff" strokeWidth={1} maxBarSize={28} />
-                <Bar dataKey="posConsumo" name="Pós-consumo" stackId="c" fill={COR.posConsumo} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar isAnimationActive={false} dataKey="posVenda" name="Pós-venda" stackId="c" fill={COR.posVenda} stroke="#fff" strokeWidth={1} maxBarSize={28} />
+                <Bar isAnimationActive={false} dataKey="posConsumo" name="Pós-consumo" stackId="c" fill={COR.posConsumo} stroke="#fff" strokeWidth={1} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             }
             tabela={{
@@ -131,7 +131,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="rotulo" width={150} tick={EIXO} tickLine={false} axisLine={false} />
                 <Tooltip formatter={(v) => kg(Number(v))} cursor={{ fill: "#00000008" }} />
-                <Bar dataKey="massaKg" name="Massa" radius={[0, 4, 4, 0]} maxBarSize={22}>
+                <Bar isAnimationActive={false} dataKey="massaKg" name="Massa" radius={[0, 4, 4, 0]} maxBarSize={22}>
                   {destinacoes.map((d) => <Cell key={d.destinacao} fill={DESTINACAO[d.destinacao].corHex} />)}
                   <LabelList dataKey="massaKg" position="right" formatter={(v) => kg(Number(v))} style={{ fontSize: 12, fill: "#52514e" }} />
                 </Bar>
@@ -155,7 +155,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <XAxis dataKey="rotulo" tick={EIXO} tickLine={false} axisLine={{ stroke: GRADE }} />
                 <YAxis domain={[0, 100]} tick={EIXO} tickLine={false} axisLine={false} unit="%" />
                 <Tooltip formatter={(v) => `${num(Number(v))}%`} />
-                <Line type="monotone" dataKey="taxaPct" name="Reaproveitamento" stroke={COR.co2} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} connectNulls />
+                <Line isAnimationActive={false} type="monotone" dataKey="taxaPct" name="Reaproveitamento" stroke={COR.co2} strokeWidth={2} dot={{ r: 4, strokeWidth: 2, fill: "#fff" }} connectNulls />
               </LineChart>
             }
             tabela={{ colunas: [{ title: "Mês", dataIndex: "rotulo" }, { title: "Reaproveitamento (%)", dataIndex: "taxaPct", align: "right" }], linhas: mensal }}
@@ -172,7 +172,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <XAxis dataKey="rotulo" tick={EIXO} tickLine={false} axisLine={{ stroke: GRADE }} />
                 <YAxis tick={EIXO} tickLine={false} axisLine={false} tickFormatter={(v) => num(v)} />
                 <Tooltip formatter={(v) => `${num(Number(v))} tCO₂e`} cursor={{ fill: "#00000008" }} />
-                <Bar dataKey="co2t" name="CO₂e evitado" fill={COR.co2} radius={[4, 4, 0, 0]} maxBarSize={28} />
+                <Bar isAnimationActive={false} dataKey="co2t" name="CO₂e evitado" fill={COR.co2} radius={[4, 4, 0, 0]} maxBarSize={28} />
               </BarChart>
             }
             tabela={{ colunas: [{ title: "Mês", dataIndex: "rotulo" }, { title: "tCO₂e", dataIndex: "co2t", align: "right" }], linhas: mensal }}
@@ -189,8 +189,8 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <YAxis tick={EIXO} tickLine={false} axisLine={false} tickFormatter={(v) => brlCurto(v)} width={72} />
                 <Tooltip formatter={(v) => brl(Number(v))} cursor={{ fill: "#00000008" }} />
                 <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="custo" name="Custo reverso" fill={COR.custo} radius={[4, 4, 0, 0]} maxBarSize={20} />
-                <Bar dataKey="recuperado" name="Valor recuperado" fill={COR.recuperado} radius={[4, 4, 0, 0]} maxBarSize={20} />
+                <Bar isAnimationActive={false} dataKey="custo" name="Custo reverso" fill={COR.custo} radius={[4, 4, 0, 0]} maxBarSize={20} />
+                <Bar isAnimationActive={false} dataKey="recuperado" name="Valor recuperado" fill={COR.recuperado} radius={[4, 4, 0, 0]} maxBarSize={20} />
               </BarChart>
             }
             tabela={{
@@ -207,7 +207,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="rotulo" width={170} tick={EIXO} tickLine={false} axisLine={false} />
                 <Tooltip formatter={(v) => brl(Number(v))} cursor={{ fill: "#00000008" }} />
-                <Bar dataKey="valor" name="Custo" fill={COR.custo} radius={[0, 4, 4, 0]} maxBarSize={22}>
+                <Bar isAnimationActive={false} dataKey="valor" name="Custo" fill={COR.custo} radius={[0, 4, 4, 0]} maxBarSize={22}>
                   <LabelList dataKey="valor" position="right" formatter={(v) => brlCurto(Number(v))} style={{ fontSize: 12, fill: "#52514e" }} />
                 </Bar>
               </BarChart>
@@ -224,7 +224,7 @@ export function Painel({ dados }: { dados: Indicadores }) {
                 <XAxis type="number" hide />
                 <YAxis type="category" dataKey="rotulo" width={180} tick={EIXO} tickLine={false} axisLine={false} />
                 <Tooltip cursor={{ fill: "#00000008" }} />
-                <Bar dataKey="quantidade" name="Devoluções" radius={[0, 4, 4, 0]} maxBarSize={22}>
+                <Bar isAnimationActive={false} dataKey="quantidade" name="Devoluções" radius={[0, 4, 4, 0]} maxBarSize={22}>
                   {motivos.map((m) => <Cell key={m.motivo} fill={CANAL[m.canal].corHex} />)}
                   <LabelList dataKey="quantidade" position="right" style={{ fontSize: 12, fill: "#52514e" }} />
                 </Bar>

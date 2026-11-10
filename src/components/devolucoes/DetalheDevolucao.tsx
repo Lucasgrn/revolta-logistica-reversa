@@ -16,6 +16,7 @@ import { brl, data, dataHora, kg } from "@/lib/formato";
 import { TagCanal, TagCondicao, TagDestinacao, TagStatus } from "@/components/Tags";
 import * as acoes from "@/app/acoes/devolucoes";
 import { ModalTriagem } from "./ModalTriagem";
+import { CampoValorReal } from "./CampoValorReal";
 
 export type DevolucaoCompleta = Prisma.DevolucaoGetPayload<{
   include: {
@@ -226,22 +227,15 @@ export function DetalheDevolucao({ devolucao: d, parametros, permissoes: p }: { 
                 { title: "Tipo", dataIndex: "tipo", render: (t: keyof typeof TIPO_RECUPERACAO, r) => <>{TIPO_RECUPERACAO[t]} <Tag className="!ml-1" color={r.estimado ? "default" : "green"} variant="filled">{r.estimado ? "estimado" : "real"}</Tag></> },
                 { title: "Ref.", dataIndex: "itemId", width: 80, render: nomeItem },
                 {
-                  title: "Valor", dataIndex: "valor", align: "right", width: 170,
+                  title: "Valor", dataIndex: "valor", align: "right", width: 220,
                   render: (v: number, r) =>
                     !encerrada && p.triar ? (
-                      <InputNumber
-                        size="small" min={0} step={10} precision={2} defaultValue={v} prefix="R$" className="!w-36"
-                        onBlur={(e) => {
-                          const n = Number(String(e.target.value).replace(/\./g, "").replace(",", "."));
-                          if (!isNaN(n) && n !== v) rodar(() => acoes.confirmarValor(r.id, n), "Valor real registrado");
-                        }}
-                        decimalSeparator=","
-                      />
+                      <CampoValorReal id={r.id} valor={v} />
                     ) : brl(v),
                 },
               ]}
             />
-            {!encerrada && p.triar && d.recuperacoes.length > 0 && <p className="mt-2 text-xs text-gray-500">Edite o valor para substituir a estimativa pelo valor real obtido.</p>}
+            {!encerrada && p.triar && d.recuperacoes.length > 0 && <p className="mt-2 text-xs text-gray-500">Edite o valor e pressione Enter para substituir a estimativa pelo valor real obtido.</p>}
           </Card>
         </Col>
       </Row>

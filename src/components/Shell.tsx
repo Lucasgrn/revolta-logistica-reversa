@@ -52,9 +52,12 @@ export function Shell({ usuario, children }: { usuario: { nome: string; papel: P
   );
 
   return (
-    <Layout className="min-h-screen">
+    <Layout hasSider className="min-h-screen">
       {telas.lg ? (
-        <Sider width={248} className="!sticky top-0 h-screen overflow-auto">{logo}{menu}</Sider>
+        // O fundo escuro acompanha toda a altura da página; o menu fica fixo no topo ao rolar.
+        <div className="shrink-0 bg-[#0f3d2e]">
+          <Sider width={248} className="!sticky top-0 h-screen overflow-auto">{logo}{menu}</Sider>
+        </div>
       ) : (
         <Drawer open={aberto} onClose={() => setAberto(false)} placement="left" size={260} styles={{ body: { padding: 0, background: "#0f3d2e" }, header: { display: "none" } }}>
           {logo}{menu}
